@@ -1,49 +1,86 @@
 import supabase from "./supabase-client";
 import { useEffect, useState } from "react";
+import { Chart } from "react-charts";
 
 function Dashboard() {
-  const [metrics, setMetrics] = useState([]); // Step 1: Import useState and create a new state variable
+  const [metrics, setMetrics] = useState([]);
 
-  /** 
-Challenge: 
-* 1. Import useState and create a new state variable, 'me trics', with a
-	   corresponding setter function, and initialise it as an empty array.
-* 2. Use the try...catch syntax in the 'fetchMetrics' function and execute 
-		 the Supabase request.
-* 3. If there's an 'error', throws this error.
-* 4. After this if statement, log the 'data' variable to the console and 
-	   use the setter function to store the 'data' variable in the 'metrics' state.
-* 5. Catch the 'error' and log it to the console with a custom message.
-* 6. Save (Cmd/Ctrl + s).
-*/
   useEffect(() => {
     fetchMetrics();
   }, []);
 
   async function fetchMetrics() {
-    // const { data, error } = await supabase.from("sales_deals").select(
-    //   `
-    //     name,
-    //     value.sum()
-    //     `
-    // );
-
     try {
-      const { data, error } = await supabase.from("sales_deals").select("name, value.sum()");
-
-      if (error) throw error;
-
-      console.log(data); // Log the data to the console
-      setMetrics(data); // Set the metrics state with the fetched data
+      const { data, error } = await supabase.from("sales_deals").select(
+        `
+          name,
+          value.sum()
+          `
+      );
+      if (error) {
+        throw error;
+      }
+      setMetrics(data);
     } catch (error) {
       console.error("Error fetching metrics:", error);
     }
+  }
+
+  const chartData = [
+    {
+      data: metrics.map((m) => ({
+        primary: m.name,
+        secondary: m.sum,
+      })),
+    },
+  ];
+
+  const primaryAxis = {
+    getValue: (d) => d.primary,
+    scaleType: "band",
+    padding: 0.2,
+    position: "bottom",
+  };
+
+  const secondaryAxes = [
+    {
+      getValue: (d) => d.secondary,
+      scaleType: "linear",
+      min: 0,
+      max: y_max(),
+      padding: {
+        top: 20,
+        bottom: 40,
+      },
+    },
+  ];
+
+  function y_max() {
+    if (metrics.length > 0) {
+      const maxSum = Math.max(...metrics.map((m) => m.sum));
+      return maxSum + 2000;
+    }
+    return 5000;
   }
 
   return (
     <div className="dashboard-wrapper">
       <div className="chart-container">
         <h2>Total Sales This Quarter ($)</h2>
+        <div style={{ flex: 1 }}>
+          <Chart
+            options={{
+              data: chartData,
+              primaryAxis,
+              secondaryAxes,
+              type: "bar",
+              defaultColors: ["#58d675"],
+              tooltip: {
+                show: false,
+              },
+            }}
+          />
+        </div>
       </div>
     </div>
   );
