@@ -1,8 +1,8 @@
 import supabase from "./supabase-client";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 function Dashboard() {
- const [metrics, setMetrics] = useState([]); // Step 1: Import useState and create a new state variable
+  const [metrics, setMetrics] = useState([]); // Step 1: Import useState and create a new state variable
 
   /** 
 Challenge: 
@@ -29,9 +29,7 @@ Challenge:
     // );
 
     try {
-      const { data, error } = await supabase
-        .from("sales_deals")
-        .select("name, value.sum()");
+      const { data, error } = await supabase.from("sales_deals").select("name, value.sum()");
 
       if (error) throw error;
 
@@ -40,7 +38,6 @@ Challenge:
     } catch (error) {
       console.error("Error fetching metrics:", error);
     }
-
   }
 
   return (
