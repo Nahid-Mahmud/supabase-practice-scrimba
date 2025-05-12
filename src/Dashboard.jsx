@@ -1,12 +1,42 @@
 import supabase from "./supabase-client";
 import { useEffect, useState } from "react";
 import { Chart } from "react-charts";
+import Form from "./Form";
 
 function Dashboard() {
   const [metrics, setMetrics] = useState([]);
 
   useEffect(() => {
     fetchMetrics();
+    /**
+Challenge:
+* 1) Call this new channel 'deal-changes'.
+* 2) Listen for all types of event (e.g. INSERT, UPDATE and DELETE).
+* 3) Add the schema (Hint: Check your Supabase Table Editor) and table name.
+* 4) Log the 'new' property of the 'payload' object to the console and save (Cmd/Ctrl + s).
+* 5) Navigate to your Supabase Table Editor and insert another row
+*/
+
+    const channel = supabase
+      .channel("deal-changes")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "sales_deals",
+        },
+        // eslint-disable-next-line no-unused-vars
+        (payload) => {
+          fetchMetrics();
+        }
+      )
+      .subscribe();
+
+    // Clean up subscription
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   async function fetchMetrics() {
@@ -81,7 +111,8 @@ function Dashboard() {
             }}
           />
         </div>
-      </div>
+      </div>{" "}
+      <Form metrics={metrics} />
     </div>
   );
 }
