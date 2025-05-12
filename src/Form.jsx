@@ -1,10 +1,37 @@
 import { useState, useEffect } from "react";
 
+import supabase from "./supabase-client";
+
 function Form({ metrics }) {
   const [newDeal, setNewDeal] = useState({
     name: "",
     value: 0,
   });
+
+  async function addDeal() {
+    try {
+      const { error } = await supabase.from("sales_deals").insert(newDeal);
+
+      if (error) {
+        throw error;
+      }
+    } catch (error) {
+      console.error("Error adding deal:", error);
+    }
+  }
+
+  /**
+Challenge:
+* 1) Import the supabase client.
+* 2) Using the 'fetchMetrics' function in Dashboard.jsx as a template, write
+		 an async function 'addDeal' using the try...catch syntax.
+* 3) Only destructure 'error' and instead of .select() use .insert(), passing in
+		 our newDeal state.
+* 4) In the handleSubmit function, call the 'addDeal' function before the 
+		 state setter function clears the input.
+* 5) Save and use the form to add a new deal.
+		 Hint: Check the supabase-js docs for "Insert Data".
+*/
 
   useEffect(() => {
     if (metrics && metrics.length > 0) {
@@ -18,6 +45,13 @@ function Form({ metrics }) {
   const handleSubmit = (event) => {
     event.preventDefault();
     console.log(newDeal);
+
+    addDeal();
+
+    setNewDeal({
+      name: metrics[0].name,
+      value: 0,
+    });
   };
 
   const handleChange = (event) => {
